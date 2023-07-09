@@ -1,6 +1,6 @@
 # GANN
 
-[[Basic example]](https://colab.research.google.com/github/Turing-IA-IHC/gann/blob/master/notebooks/LibriSpeech.ipynb)
+[[Basic example]](https://colab.research.google.com/github/Turing-IA-IHC/gann/blob/master/notebooks/test_darwin_g0.ipynb)
 
 Genetic Algorithm + Neural Networks
 

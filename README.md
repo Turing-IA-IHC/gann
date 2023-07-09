@@ -13,7 +13,7 @@ This library allows you to apply evolution to neural networks to achieve better 
 We used Python 3.10+ command:
 
     # coming soon
-    pip install -U openai-whisper 
+    pip install -U gann
 
 Alternatively, the following command will pull and install the latest commit from this repository, along with its Python dependencies:
 

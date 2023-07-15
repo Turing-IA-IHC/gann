@@ -2,10 +2,15 @@ import numpy as np
 import pickle
 from tqdm import tqdm 
 
-#from gann.nn.activations import Activation
+from gann.params import Params
 from gann.nn.losses import Loss
 from gann.nn.layers import Layer
 from gann.nn.listeners import Listener
+
+try:
+  import cupy as cp
+except:
+  pass
 
 class Net():
   """
@@ -116,7 +121,7 @@ class Net():
         self._layers[-1].qty_outputs,
         self.lr,
         self.loss.name,
-        round(self.loss_val, 3),
+        np.round(self.loss_val, 3),
         self.param_count()
       )
     )
@@ -175,6 +180,9 @@ class Net():
   def train(self, X, Y, epochs:int=1000, lf:Loss=None, lr:float=None, listener:Listener=None):
     """ Perform backward propagation and gradient descendent """
 
+    if Params.gpu_actived():
+      X = cp.asarray(X)
+
     if lf != None: self.change_lf(lf)
     if lr != None: self.change_lr(lr)
 
@@ -209,7 +217,7 @@ class Net():
           listener.show()
       
       if listener == None or listener.name == 'Keep Progress':
-        t.set_description('Training ({:5}:{:5})'.format(self.loss.name, round(self.loss_val, 3)))
+        t.set_description('Training ({:5}:{:5})'.format(self.loss.name, np.round(self.loss_val, 3)))
         t.refresh()
 
       if self.loss_val < self.lr:

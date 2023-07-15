@@ -1,2 +1,8 @@
 from .layer import Layer
-from .dense import Dense
+
+from ...params import Params
+
+if Params.gpu_actived():  
+  from .dense_gpu import Dense_GPU as Dense
+else:
+  from .dense import Dense

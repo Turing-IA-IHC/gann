@@ -48,8 +48,8 @@ class Listener(ABC):
   
   def append_data(self, loss, lr=None, prediction=None): 
     """ Allow add data to show """
-    self.losses.append(loss)
-    self.lrs.append(lr)
+    self.losses.append(float(loss))
+    self.lrs.append(float(lr))
     self.predictions.append(prediction)
     self.iter = self.iter + 1
 

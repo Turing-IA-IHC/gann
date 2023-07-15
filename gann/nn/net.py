@@ -63,10 +63,10 @@ class Net():
     """ Allow to delete a layer in index """
     self._layers.remove(self._layers[index])
 
-  def compile(self, qty_inputs):
+  def compile(self, input_shape):
     """ Runs compile of all layers sequiential """
-    self._qty_inputs = qty_inputs
-    self._layers[0].compile(qty_inputs)
+    self._qty_inputs = input_shape
+    self._layers[0].compile(input_shape)
     for i, l in enumerate(self._layers[1:], 1):
       l.compile(self._layers[i - 1].qty_outputs)
   
@@ -117,7 +117,7 @@ class Net():
     print('====================================================================')    
 
     print('Inputs: {:<4} Outputs: {:<4} lr: {:<5}  loss ({}): {:<5}  Params: {}'.format(
-        self.qty_inputs,
+        str(self.qty_inputs),
         self._layers[-1].qty_outputs,
         self.lr,
         self.loss.name,
@@ -135,7 +135,7 @@ class Net():
         hl.info(idx)
       else:
         print(' {:^5} : {:<9}|{:^5}:{:^5}: {:<9} : {:<10}'.format(
-            idx, hl.name , hl.qty_inputs, hl.qty_outputs, hl.act.name, hl.param_count())
+            idx, hl.name , str(hl.qty_inputs), hl.qty_outputs, hl.act.name, hl.param_count())
         )
     
     if not detailed:
@@ -180,7 +180,7 @@ class Net():
   def train(self, X, Y, epochs:int=1000, lf:Loss=None, lr:float=None, listener:Listener=None):
     """ Perform backward propagation and gradient descendent """
 
-    if Params.gpu_actived():
+    if Params.gpu_activated():
       X = cp.asarray(X)
 
     if lf != None: self.change_lf(lf)

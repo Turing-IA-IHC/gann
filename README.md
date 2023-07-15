@@ -23,6 +23,9 @@ To update the package to the latest version of this repository, please run:
 
     pip install --upgrade --no-deps --force-reinstall git+https://github.com/Turing-IA-IHC/gann.git
 
+### With GPU
+
+If your computer has GPU card you are able to use cupy library. To install cupy go to https://docs.cupy.dev/en/stable/install.html
 
 ## License
 

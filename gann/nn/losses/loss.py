@@ -74,7 +74,7 @@ class Loss(ABC):
       for nf in funct_names:
         lf = Loss.get(nf)
         fns.append(nf)
-        vals.append(lf.cal(p, data))
+        vals.append(float(lf.cal(p, data)))
 
       plt.bar(fns, vals, label=fns, color=bar_colors)
 

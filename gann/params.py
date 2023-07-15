@@ -17,4 +17,4 @@ class Params:
     print('GPU mode deactivated. Could be required to restart the kernel.')
   
   @staticmethod
-  def gpu_actived(): return Params._gpu_activated
+  def gpu_activated(): return Params._gpu_activated

@@ -140,4 +140,4 @@ class Conv2D(Layer):
     self.W -= learning_rate * dW
     self.b -= learning_rate * db
 
-Layer.append('Conv2D', Conv2D.create)
+#Layer.append('Conv2D', Conv2D.create)

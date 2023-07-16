@@ -50,4 +50,4 @@ class Flatten(Layer):
     def update_weights(self, delta, input, learning_rate: float):
         pass
 
-Layer.append('Flatten', Flatten.create)
+#Layer.append('Flatten', Flatten.create)

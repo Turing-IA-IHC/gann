@@ -51,4 +51,4 @@ class Flatten_GPU(Layer):
   def update_weights(self, delta, input, learning_rate):
     pass
 
-Layer.append('Flatten', Flatten_GPU.create)
+#Layer.append('Flatten', Flatten_GPU.create)

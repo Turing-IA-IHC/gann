@@ -34,10 +34,10 @@ class Net():
     self.change_lr(learning_rate)
     self.change_listener(listener)
     self._layers = [] if layers == None else layers
-    self._qty_inputs = 1
+    self._input_shape = None
     self._loss_val = 0.0
   
-  def append_layer(self, l):
+  def add(self, l):
     """ Add a Layer to list """
     if not isinstance(l, Layer):
       raise Exception('Error de tipo se esperaba Layer y recibió', type(l))
@@ -65,10 +65,10 @@ class Net():
 
   def compile(self, input_shape):
     """ Runs compile of all layers sequiential """
-    self._qty_inputs = input_shape
+    self.input_shape = input_shape
     self._layers[0].compile(input_shape)
     for i, l in enumerate(self._layers[1:], 1):
-      l.compile(self._layers[i - 1].qty_outputs)
+      l.compile(self._layers[i - 1].output_shape)
   
   def param_count(self):
     """ Returns the params quantity """
@@ -77,8 +77,15 @@ class Net():
       params = params + l.param_count()
     return params
     
-  def _get_qty_inputs(self): return self._qty_inputs
-  qty_inputs = property(_get_qty_inputs)
+  def _set_input_shape(self, value):
+    """ Set the input shape of net """
+    self._input_shape = value
+  
+  input_shape = property(
+      lambda self: self._input_shape, 
+      lambda self, value: self._set_input_shape(value),
+      doc=""" Input shape of net """
+    )
   
   def change_lf(self, lf:Loss|str):
     """ Allow change the Loss function """
@@ -115,10 +122,11 @@ class Net():
     Shows full Net structure
     """
     print('====================================================================')    
+    return
 
     print('Inputs: {:<4} Outputs: {:<4} lr: {:<5}  loss ({}): {:<5}  Params: {}'.format(
-        str(self.qty_inputs),
-        self._layers[-1].qty_outputs,
+        str(self.input_shape),
+        str(self._layers[-1].output_shape),
         self.lr,
         self.loss.name,
         np.round(self.loss_val, 3),
@@ -135,7 +143,7 @@ class Net():
         hl.info(idx)
       else:
         print(' {:^5} : {:<9}|{:^5}:{:^5}: {:<9} : {:<10}'.format(
-            idx, hl.name , str(hl.qty_inputs), hl.qty_outputs, hl.act.name, hl.param_count())
+            idx, hl.name , str(hl.input_shape), hl.output_shape, hl.activation.name, hl.param_count())
         )
     
     if not detailed:
@@ -148,13 +156,32 @@ class Net():
     Shows simple Net structure
     """
     s = [
-        '{} ({})'.format(l.qty_outputs, l.act.name) if detailed else l.qty_outputs 
+        '{} ({})'.format(l.output_shape, l.act.name) if detailed else l.output_shape 
          for l in self._layers
          ]
     print('In: {:<2} -> {} -> {:>5}: {} | lr: {}'.format(
-        self.qty_inputs ,s, self.loss.name, 
+        self.input_shape ,s, self.loss.name, 
         round(self.loss_val, 5), round(self.lr, 5))
     )
+
+  def summary(self, detailed=False):
+    """ Shows full Net structure """
+    print('=' * 80)
+    print('Inputs: {:<4} Outputs: {:<4} Params: {}'.format(
+        str(self.input_shape),
+        str(self._layers[-1].output_shape),
+        self.param_count()
+      )
+    )
+    print('Loss ({}): {:<5} Learning rate: {:<5}'.format(
+        self.loss.name, np.round(self.loss_val, 3), self.lr
+      )
+    )
+    print('{:>2} {:<10} {:<12} {:<25} {:<12}'.format('Id', 'Name', 'Activation', 'Output', 'Params'))
+    print('-' * 80)
+    for i, l in enumerate(self._layers):
+      print(l.info(i, show=False))
+    print('=' * 80)
 
   def save(self, file_name):
     """ Save model """
@@ -177,7 +204,7 @@ class Net():
       a = l.predict(a)
     return a
 
-  def train(self, X, Y, epochs:int=1000, lf:Loss=None, lr:float=None, listener:Listener=None):
+  def fit(self, X, Y, epochs:int=1000, lf:Loss=None, lr:float=None, listener:Listener=None):
     """ Perform backward propagation and gradient descendent """
 
     if Params.gpu_activated():
@@ -190,30 +217,32 @@ class Net():
 
     t = tqdm(range(epochs), desc='Training ', disable=listener!=None and listener.name != 'Keep Progress')
     outputs = None
-    for e in t:
+    for epoch in t:
       # Fordward propagation
       outputs = [self._layers[0].predict(X)]
       for i, l in enumerate(self._layers[1:], start=1):
         outputs.append(l.predict(outputs[i - 1]))
       
+      # Keep w before update
       _w = self._layers[-1].w
-      # Backward propagation
-      deltas = [self._layers[-1].delta(self.loss, True, outputs[-1], Y=Y)]
-      # Gradient descendent
+      # Backward propagation / Gradient descendent
+      # Calculate output delta
+      deltas = [self.loss.der(outputs[-1], Y) * self._layers[-1].activation.der(outputs[-1])]
+      # Update weights
       self._layers[-1].update_weights(deltas[0], outputs[-2], self.lr)
 
       for i, l in reversed(list(enumerate(self._layers[1:-1], start=1))):
-        deltas.insert(0, l.delta(self.loss, False, outputs[i], delta_next=deltas[0], w_next=_w))
+        deltas.insert(0, l.delta(outputs[i], delta_next=deltas[0], w_next=_w))
         _w = l.w
         l.update_weights(deltas[0], outputs[i-1], self.lr)
       
-      deltas.insert(0, l.delta(self.loss, False, outputs[0], delta_next=deltas[0], w_next=_w))
+      deltas.insert(0, self._layers[0].delta(outputs[0], delta_next=deltas[0], w_next=_w))
       self._layers[0].update_weights(deltas[0], X, self.lr) # Último paso contra la entrada      
       self.change_loss_val(self.loss.cal(outputs[-1], Y))
 
       if listener != None:
         listener.append_data(self.loss_val, self.lr, outputs[-1])
-        if (e+1) % 50==0:
+        if (epoch + 1) % 50==0:
           listener.show()
       
       if listener == None or listener.name == 'Keep Progress':

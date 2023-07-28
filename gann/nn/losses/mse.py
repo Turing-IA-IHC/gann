@@ -3,7 +3,8 @@ from ...params import Params
 from .loss import Loss
 
 try:
-  import cupy as cp
+  if Params.gpu_activated():
+    import cupy as cp
 except:
   pass
 

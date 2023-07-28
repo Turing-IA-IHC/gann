@@ -2,6 +2,9 @@ import numpy as np
 from abc import ABC, abstractmethod
 from gann.ga import Individual
 
+# TODO: Add a listener to show the evolution
+# TODO: Add option to receive a list layer and type of layers availables
+
 class Darwin(ABC):
   """ Class to represent the genetic algorithm """
 
